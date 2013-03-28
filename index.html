@@ -1,5 +1,204 @@
-<html>
-  <body>
-    <h2>Test</h2>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>The Maze</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <link rel="stylesheet" href="//koding.com/hello/css/style.css">
+    
+    <script type="text/javascript" src="processing-1.4.1.js"></script>
+    <script type="text/javascript" src="solverFunctions.js"></script>
+    <script type="text/javascript" src="mazeFunctions.js"></script>
+    <script type="text/javascript" src="playerFunctions.js"></script>
+    <script type="text/javascript" src="main.js"></script>
+    <style>
+        #targetcanvas{float:left;}
+        body{
+            color:green;
+        }
+        input, label, button{
+            color:green;
+        }
+        .generalDiv{
+            background-color:white;
+            border-width:4px;
+            border-style:solid;
+            
+            margin:10px 10px 10px 1020px;
+        }
+        #summary{
+            visibility:hidden;
+            position:relative;
+            top:-200px;
+            z-index:10;
+            
+            margin:10px 10px 10px 1020px;
+            
+            background-color:green;
+            border-width:4px;
+            border-style:solid;
+        }
+    </style>
+    
+        <link href='//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+    <script type="text/processing" data-processing-target="targetcanvas">
+		var canvas = document.getElementById("targetcanvas");
+		// attaching the sketchProc function to the canvas
+		var processingInstance = new Processing(canvas, sketchProc);
+    </script>
+    
+    
+    
+    <script type="text/javascript">
+    // updating Vars is the actually js variable, wheereas updtating boxes is updating the html elemenet boxes
+        function updateColorBoxes(whichCells){
+            red = document.getElementById('red');
+            tempString = "window.";
+            red.value = eval(tempString.concat(whichCells, "[0];"));
+            
+            green = document.getElementById('green');
+            tempString = "window.";
+            green.value = eval(tempString.concat(whichCells, "[1];"));
+            
+            blue = document.getElementById('blue');
+            tempString = "window.";
+            blue.value = eval(tempString.concat(whichCells, "[2];"));
+        }
+        
+        function updateColorVar(whichVar){
+            red = document.getElementById('red');
+            tempString = "window.";
+            eval(tempString.concat(whichVar, "[0]=", red.value, ';'));
+            
+            green = document.getElementById('green');
+            tempString = "window.";
+            eval(tempString.concat(whichVar, "[1]=" , green.value, ";"));
+            
+            blue = document.getElementById('blue');
+            tempString = "window.";
+            eval(tempString.concat(whichVar, "[2]=", blue.value, ";"));
+            
+            //lame hack, will earase cell fills,  gotta fix this sometime...
+            if(whichVar ==="backgroundColor"){
+                initGrid();
+            }
+            drawAllCells();
+        }
+        
+        function updateMazeAttrBoxes(){
+            cellSizeElement = document.getElementById('cellSize');
+            tempString = "";
+            cellSizeElement.value = eval(tempString.concat('cellSize'));
+            
+            numColsElement = document.getElementById('numOfCols');
+            tempString = "";
+            numColsElement.value = eval(tempString.concat('numCols'));
+            
+            numRowsElement = document.getElementById('numOfRows');
+            tempString = "";
+            numRowsElement.value = eval(tempString.concat('numRows'));
+        }
+        
+        function updateMazeAttrVars(){
+            cellSize = document.getElementById('cellSize');
+            tempString = "";
+            eval(tempString.concat("cellSize=" , cellSize.value, ";"));
+            
+            numOfCols = document.getElementById('numOfCols');
+            tempString = "";
+            eval(tempString.concat("numCols=", numOfCols.value, ";"));
+            
+            numOfRows = document.getElementById('numOfRows');
+            tempString = "";
+            eval(tempString.concat("numRows=" , numOfRows.value, ";"));
+            
+            resetMaze();
+        }
+        
+        function show(element)
+        {    
+            document.getElementById(element).style.visibility = 'visible';
+        }
+        function hide(element)
+        {
+            document.getElementById(element).style.visibility = 'hidden';
+        }
+        
+        
+        
+    </script>
+  </head>
+  <body onload="updateColorBoxes(document.getElementById('cellColorList').value); updateMazeAttrBoxes()">
+    <canvas id="targetcanvas" style="border: 1px solid black;"> <h2>Too bad your browser is a piece crap and doesn't 
+    support the HTML5 canvas object...
+    <br/> <a href='www.google.com/chrome'>This may help</a></h2>
+    </canvas>
+    
+    <!-- All the buttons and coool stuff -->
+    <div id="mazeAttr" class="generalDiv">
+        Note: Maze has to be reset for these values to be updated.
+        <br/>
+        <button onclick="updateMazeAttrVars()">Reset Maze</button><br/>
+        <br/>
+        <label for="cellSize">Cell Size</label>
+        <input id="cellSize" type="number" min="1" max="1000" step="1" value="cellSize"/>
+        <br/>
+        
+        <label for="mazeWidth">Number Of Columns</label>
+        <input id="numOfCols" type="number" min="0" max="9999" step="1" value="numCols" />
+        <br/>
+        
+        <label for="mazeHeight">Number of Rows</label>
+        <input id="numOfRows" type="number" min="0" max="599" step="1" value="numRows" />
+        <br/>
+    </div>
+    
+    
+    <div id="speeds" class="generalDiv">
+        <h3>Speeds (in cells per minute)</h3>
+        <!-- generator speed -->
+        <label for="generatorSpeed">Gernerator Speed</label>
+        <input id="generatorSpeed" type="number" value="100" min="0" max="1000" step="10" onchange="window.generatorCellsPerMinute= this.value" />
+        <br/>
+        <!-- solver spped -->
+        <label for="solverSpeed">Solver Speed</label>
+        <input id="solverSpeed" type="number" value="100" min="0" max="1000" step="10" onchange="window.solverCellsPerMinute= this.value" />
+        <br/>
+    </div>
+    
+    <div id="colorSchemer" class="generalDiv">
+    <h3 onmouseover="show('summary')" onmouseout="hide('summary')">Jabari's Color Schemer</h3>
+    <p style="color:green;">To use, simply select the cell type you want to edit 
+        from the drop down menu then input RGB values into the boxes accordingly.</p>
+    <!-- drop down List -->
+    <select id="cellColorList" onclick="updateColorBoxes(this.value);">
+      <option value="mazeColor">Used Cell</option>
+      <option value="activeColor">ACtive Cell</option>
+      <option value="emptyColor">Empty Cell</option>
+      <option value="backtrackedFillColor">Backtracked Fill</option>
+      <option value="visitedFillColor">Visited Fill</option>
+      <option value="backgroundColor">BackgroundColor</option>
+    </select>
+    
+    <br/>
+    <label for="red">Red</label> <input type="text" id="red" 
+        onchange="updateColorVar(document.getElementById('cellColorList').value)" />
+    <br/>
+    <label for="gree">Green</label> <input type="text" id="green"
+        onchange="updateColorVar(document.getElementById('cellColorList').value)" />
+    <br/>
+    <label for="blue">Blue</label> <input type="text" id="blue"
+        onchange="updateColorVar(document.getElementById('cellColorList').value)" />
+    <br/>
+    </div>
+    <div id="summary">
+            <p>This is here because Jabari naggs me every time I see him about the colors I use.
+                Create your own colors bro!
+            </p>
+        </div>
   </body>
 </html>
+
+
+
+
