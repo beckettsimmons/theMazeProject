@@ -45,10 +45,12 @@ function solver2(cellList){
     
     // if we get to target (which in this case is the active cell)
     if (window.cells[row][col].state===2){
+        window.scores[1]+=1;
         return true;
     }
     // if the player gets to the tartget
     if (window.cells[playerPos[0]][playerPos[1]].state===2){
+        window.scores[0]+=1;
         return true;
     }
     // go up

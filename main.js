@@ -4,6 +4,8 @@ var cellSize = 40; //TODO: FIGURE out how in the world large cell size means slo
 var numRows = 400 /cellSize;
 var numCols = 800/cellSize;
 
+
+window.scores = [0,0];
 //speeds
 window.generatorCellsPerMinute = 100;
 window.solverCellsPerMinute = 50;
@@ -69,13 +71,13 @@ function sketchProc(processing) {
             }
         }
         
-        // draw the draw time.
+        // draw the scores
         processing.textSize(20);
         processing.fill(100,100,100);
         processing.rect(100,435,100,80);
         processing.fill(255,255,255);
-        processing.text(avgCellDrawTime*1000, 100, 450);
-        processing.text(runTime, 100, 480);
+        processing.text(window.scores[0], 100, 450);
+        processing.text(window.scores[1], 100, 480);
         
 	};
 	setterupper(processing);
